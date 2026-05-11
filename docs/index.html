@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aicopycheck — AI代码版权风险扫描器</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0f;
+    color: #e4e4e7;
+    line-height: 1.6;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 60px 0 40px; }
+  .hero h1 { font-size: 48px; font-weight: 800; letter-spacing: -1px; }
+  .hero h1 span { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero .subtitle { font-size: 18px; color: #a1a1aa; margin-top: 12px; max-width: 520px; margin-inline: auto; }
+  .hero .badge-row { display: flex; gap: 8px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge-green { background: #052e16; color: #4ade80; }
+  .badge-blue { background: #172554; color: #60a5fa; }
+  .badge-purple { background: #2e1065; color: #c084fc; }
+
+  /* Install bar */
+  .install-bar {
+    background: #18181b; border: 1px solid #27272a; border-radius: 10px;
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    max-width: 480px; margin: 24px auto; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px;
+  }
+  .install-bar .prompt { color: #6366f1; }
+  .install-bar .cmd { color: #e4e4e7; flex: 1; }
+  .install-bar .copy-btn { color: #a1a1aa; cursor: pointer; background: none; border: 1px solid #3f3f46; padding: 4px 12px; border-radius: 6px; font-size: 12px; transition: all 0.15s; }
+  .install-bar .copy-btn:hover { color: #e4e4e7; border-color: #6366f1; }
+
+  /* Sections */
+  .section { padding: 40px 0; }
+  .section h2 { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 40px; }
+  .section h2 span { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* Features grid */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .feature-card {
+    background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .feature-card:hover { border-color: #6366f1; }
+  .feature-card .icon { font-size: 28px; margin-bottom: 12px; }
+  .feature-card h3 { font-size: 16px; margin-bottom: 6px; }
+  .feature-card p { font-size: 13px; color: #a1a1aa; }
+
+  /* Pricing */
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+  .pricing-card {
+    background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 28px 24px;
+    text-align: center; transition: all 0.2s; position: relative;
+  }
+  .pricing-card:hover { border-color: #6366f1; transform: translateY(-2px); }
+  .pricing-card.featured { border-color: #6366f1; background: linear-gradient(180deg, #1a1a2e 0%, #18181b 100%); }
+  .pricing-card.featured::before {
+    content: '推荐'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: #6366f1; color: white; padding: 2px 14px; border-radius: 10px; font-size: 11px; font-weight: 600;
+  }
+  .pricing-card .tier-name { font-size: 18px; font-weight: 700; }
+  .pricing-card .tier-price { font-size: 36px; font-weight: 800; margin: 12px 0 4px; }
+  .pricing-card .tier-price span { font-size: 16px; font-weight: 400; color: #71717a; }
+  .pricing-card .tier-desc { font-size: 13px; color: #a1a1aa; margin-bottom: 16px; }
+  .pricing-card ul { text-align: left; list-style: none; font-size: 13px; margin-bottom: 20px; }
+  .pricing-card ul li { padding: 4px 0; color: #a1a1aa; }
+  .pricing-card ul li::before { content: '✓ '; color: #22c55e; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-decoration: none; border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: #6366f1; color: white; }
+  .btn-primary:hover { background: #5558e6; }
+  .btn-outline { background: transparent; border: 1px solid #3f3f46; color: #e4e4e7; }
+  .btn-outline:hover { border-color: #6366f1; }
+
+  /* Demo / terminal */
+  .terminal {
+    background: #0c0c14; border: 1px solid #27272a; border-radius: 12px; padding: 20px 24px;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.7;
+    max-width: 650px; margin: 0 auto; overflow-x: auto;
+  }
+  .terminal .green { color: #4ade80; }
+  .terminal .red { color: #f87171; }
+  .terminal .yellow { color: #facc15; }
+  .terminal .dim { color: #71717a; }
+  .terminal .bold { color: #e4e4e7; font-weight: 600; }
+
+  /* Sponsor */
+  .sponsor-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2e1065 100%);
+    border: 1px solid #6366f1; border-radius: 16px; padding: 40px;
+    text-align: center; max-width: 500px; margin: 0 auto;
+  }
+  .sponsor-card h3 { font-size: 22px; margin-bottom: 8px; }
+  .sponsor-card p { color: #a1a1aa; font-size: 14px; margin-bottom: 20px; }
+
+  .footer { text-align: center; padding: 40px 0; color: #52525b; font-size: 13px; }
+  .footer a { color: #71717a; text-decoration: none; }
+  .footer a:hover { color: #a1a1aa; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 32px; }
+    .install-bar { flex-direction: column; text-align: center; }
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1><span>aicopycheck</span></h1>
+    <p class="subtitle">扫描代码库中的AI生成痕迹，在合规问题出现之前了解你的版权风险</p>
+    <div class="badge-row">
+      <span class="badge badge-green">零依赖</span>
+      <span class="badge badge-blue">纯Node.js</span>
+      <span class="badge badge-purple">离线运行</span>
+      <span class="badge badge-green">MIT开源</span>
+    </div>
+    <div class="install-bar">
+      <span class="prompt">$</span>
+      <span class="cmd">npx aicopycheck .</span>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('npx aicopycheck .');this.textContent='已复制';setTimeout(()=>this.textContent='复制',1500)">复制</button>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="section">
+    <h2>检测能力</h2>
+    <div class="features">
+      <div class="feature-card">
+        <div class="icon">🤖</div>
+        <h3>AI工具溯源</h3>
+        <p>检测 "Generated by Claude/Copilot/Cursor/ChatGPT" 等显式标注</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📋</div>
+        <h3>复制粘贴残留</h3>
+        <p>识别 "As an AI"、"I apologize" 等AI对话中复制过来的痕迹</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📝</div>
+        <h3>代码特征分析</h3>
+        <p>过高的注释比、空洞的TODO占位符、通用变量名聚集</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">⚖️</div>
+        <h3>许可证冲突</h3>
+        <p>检测缺失的授权声明、GPL与AI代码的潜在冲突</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔌</div>
+        <h3>CI/CD 就绪</h3>
+        <p>GitHub Actions 一行集成，PR时自动扫描</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔒</div>
+        <h3>完全离线</h3>
+        <p>代码不离开你的机器，零隐私风险</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo output -->
+  <div class="section">
+    <h2>输出示例</h2>
+    <div class="terminal">
+<span class="bold">Project Risk: <span class="red">🟠 HIGH</span></span><br>
+<span class="dim">Average Score: 0.76 / 1.00</span><br><br>
+<span class="dim">Risk Distribution:</span><br>
+<span class="dim">  CRITICAL: 3  HIGH: 5  MEDIUM: 12  LOW: 45</span><br><br>
+<span class="bold">FLAGGED FILES:</span><br>
+<span class="red">  🔴 [0.95] src/services/ai-helper.ts</span><br>
+<span class="dim">      ↳ Copy-paste artifact from AI conversation</span><br>
+<span class="dim">      ↳ No license header detected</span><br><br>
+<span class="yellow">  🟡 [0.45] src/utils/formatter.js</span><br>
+<span class="dim">      ↳ High comment-to-code ratio (AI tendency)</span><br><br>
+<span class="dim">...</span><br><br>
+<span class="dim">⚠️ WARNING: Significant AI-generated code detected.</span><br>
+<span class="dim">Review flagged files before distribution.</span>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="section">
+    <h2>定价</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="tier-name">个人开发者</div>
+        <div class="tier-price">免费</div>
+        <div class="tier-desc">永久免费</div>
+        <ul>
+          <li>CLI 基础扫描</li>
+          <li>文本 / JSON 输出</li>
+          <li>本地离线运行</li>
+          <li>社区支持</li>
+        </ul>
+        <a href="#" class="btn btn-outline">开始使用</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="tier-name">Pro</div>
+        <div class="tier-price">¥9<span>/月</span></div>
+        <div class="tier-desc">适合重度AI编程者</div>
+        <ul>
+          <li>HTML风险报告</li>
+          <li>自定义检测规则</li>
+          <li>历史趋势对比</li>
+          <li>优先技术支持</li>
+        </ul>
+        <a href="https://afdian.com/a/爱发电用户_5a503" class="btn btn-primary">订阅 Pro</a>
+      </div>
+      <div class="pricing-card">
+        <div class="tier-name">Team</div>
+        <div class="tier-price">¥29<span>/月</span></div>
+        <div class="tier-desc">5人团队</div>
+        <ul>
+          <li>CI/CD 集成</li>
+          <li>合规审计报告</li>
+          <li>Slack/钉钉通知</li>
+          <li>邮件支持</li>
+        </ul>
+        <a href="https://afdian.com/a/爱发电用户_5a503" class="btn btn-outline">订阅 Team</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sponsor -->
+  <div class="section">
+    <div class="sponsor-card">
+      <h3>⚡ 赞助独立开发</h3>
+      <p>如果这个工具帮你避免了一次法律纠纷，请我喝杯咖啡。所有赞助将用于升级开发设备。</p>
+      <a href="https://afdian.com/a/爱发电用户_5a503" class="btn btn-primary" style="font-size:16px; padding: 12px 32px;">去爱发电赞助</a>
+      <p style="margin-top:16px; font-size: 13px; color: #71717a;">也支持微信/支付宝扫码 →</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>MIT License · 代码不离开你的机器</p>
+    <p style="margin-top:4px;"><a href="https://github.com/gaojinp4-cpu/aicopycheck">GitHub</a> · <a href="https://afdian.com/a/爱发电用户_5a503">爱发电</a></p>
+  </div>
+
+</div>
+</body>
+</html>

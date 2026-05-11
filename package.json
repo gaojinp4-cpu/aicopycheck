@@ -1,0 +1,48 @@
+{
+  "name": "aicopycheck",
+  "version": "1.0.1",
+  "description": "Scan your codebase for AI-generated code. Know your copyright risk before it becomes a legal problem.",
+  "main": "lib/scanner.js",
+  "bin": {
+    "aicopycheck": "bin/aiscan.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md",
+    "AGENTS.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ai",
+    "copyright",
+    "code-scanner",
+    "compliance",
+    "cli",
+    "ai-generated",
+    "copilot",
+    "claude",
+    "chatgpt",
+    "code-review",
+    "legal",
+    "risk-assessment",
+    "devtools",
+    "static-analysis",
+    "audit",
+    "sbom",
+    "supply-chain",
+    "github-actions"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gaojinp4-cpu/aiscan.git"
+  },
+  "homepage": "https://github.com/gaojinp4-cpu/aiscan#readme",
+  "bugs": {
+    "url": "https://github.com/gaojinp4-cpu/aiscan/issues"
+  }
+}
